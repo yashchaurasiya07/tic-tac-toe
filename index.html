@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tic-Tac-Toe Ultimate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --primary-light: #f8fafc;
+      --primary-dark: #24243e;
+      --secondary-light: #3a7bd5;
+      --secondary-dark: #237A57;
+      --cell-bg: rgba(255,255,255,0.9);
+      --cell-dark-bg: rgba(40,50,60,0.8);
+      --xo-x: #228be6;
+      --xo-o: #fa5252;
+      --xo-light: #fcc419;
+      --xo-dark: #c0c7cf;
+      --cell-win: #38ef7d;
+      --cell-win-dark: #51eaea;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #3a7bd5 0%, #3a6073 100%);
+      transition: background 0.5s;
+    }
+
+    body.dark-mode {
+      background: linear-gradient(135deg, #232526 0%, #414345 100%);
+    }
+
+    .container {
+      background: rgba(255,255,255,0.14);
+      backdrop-filter: blur(2px);
+      border-radius: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+      padding: 2rem 2.2rem 1.3rem 2.2rem;
+      max-width: 430px;
+      width: 95vw;
+      text-align: center;
+      transition: background 0.5s;
+    }
+    body.dark-mode .container {
+      background: rgba(30,35,42,0.40);
+      color: #f5f6fa;
+    }
+
+    .top-bar {
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .top-bar label {
+      font-size: 1rem;
+    }
+    /* Toggle button as requested */
+    #theme-toggle {
+      font-size: 1rem;
+      padding: 0.39rem 1.1rem;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #3a7bd5 0%, #43cea2 100%);
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.14s;
+    }
+    #theme-toggle:hover {
+      background: linear-gradient(90deg, #34e89e 0%, #3a7bd5 100%);
+      transform: scale(1.05);
+    }
+
+    #ai-toggle {
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ced6e0;
+      padding: 0.32rem 0.4rem;
+    }
+
+    .names-setup {
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 0.3rem;
+      flex-direction: column;
+    }
+    .names-setup input, .names-setup button, .names-setup select {
+      font-size: 1rem;
+      padding: 0.37rem 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #ced6e0;
+      outline: none;
+      transition: border .25s;
+      margin-top: 0.22rem;
+    }
+    .names-setup input:focus { border-color: #228be6; }
+    .names-setup button {
+      background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+      border: none;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 0.7rem;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .names-setup button:hover { background: linear-gradient(90deg, #38ef7d 0%, #11998e 100%); }
+
+    .scoreboard {
+      display: flex;
+      justify-content: center;
+      gap: 1.7rem;
+      font-size: 1.12rem;
+      margin-bottom: 1rem;
+      margin-top: .8rem;
+      font-weight: 600;
+    }
+    .scoreboard span {
+      padding: 0.2rem 0.7rem;
+      border-radius: 7px;
+      background: rgba(255,255,255,0.57);
+    }
+    body.dark-mode .scoreboard span {
+      background: rgba(30,35,42, 0.55);
+      color: #fcc419;
+    }
+
+    .controls-bar {
+      display: flex;
+      justify-content: center;
+      gap: 0.9rem;
+      margin: 0.4rem 0 1.05rem 0;
+    }
+    .controls-bar button {
+      font-size: 1rem;
+      padding: 0.38rem 1.2rem;
+      border-radius: 8px;
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      background: linear-gradient(90deg, #3a7bd5 0%, #43cea2 100%);
+      cursor: pointer;
+      box-shadow: 0 2px 7px rgba(30,144,255,0.04);
+      transition: background 0.20s, transform 0.15s;
+    }
+    .controls-bar button:hover {
+      background: linear-gradient(90deg, #43cea2 0%, #3a7bd5 100%);
+      transform: scale(1.055);
+    }
+
+    .status-message {
+      font-size: 1.19rem;
+      min-height: 30px;
+      margin-bottom: 1rem;
+      margin-top: 7px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: #1864ab;
+      transition: color 0.3s;
+    }
+    body.dark-mode .status-message {
+      color: #fcc419;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 68px);
+      grid-template-rows: repeat(3, 68px);
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 0.7rem;
+    }
+    .cell {
+      background: var(--cell-bg);
+      border-radius: 13px;
+      font-size: 2.4rem;
+      font-weight: bold;
+      color: var(--xo-x);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(30,30,60,0.03);
+      transition: background 0.20s, color 0.2s;
+      position: relative;
+      z-index: 1;
+      min-width: 68px;
+      min-height: 68px;
+    }
+    .cell[data-value="O"] { color: var(--xo-o);}
+    .cell[data-value=""]  { color: #b0b0b0; }
+
+    .cell.win {
+      background: linear-gradient(135deg, var(--cell-win), #b2ffde);
+      animation: win-blink 0.7s 3;
+      color: #083943;
+      z-index: 2;
+    }
+    body.dark-mode .cell {
+      background: var(--cell-dark-bg);
+      color: var(--xo-dark);
+    }
+    body.dark-mode .cell[data-value="X"] { color: var(--xo-win-dark);}
+    body.dark-mode .cell[data-value="O"] { color: #ffbe76;}
+    body.dark-mode .cell.win {
+      background: linear-gradient(135deg, var(--cell-win-dark), #1b232d);
+      color: #141e30;
+    }
+    @keyframes win-blink {
+      0%   { box-shadow: 0 0 0px #38ef7d28, 0 0 0px #38ef7d28; }
+      55%  { box-shadow: 0 0 25px #38ef7d, 0 0 13px #38ef7d; }
+      100% { box-shadow: 0 0 0px #38ef7d18, 0 0 0px #38ef7d18; }
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: 0.7rem 0.1rem 0.7rem 0.1rem; }
+      .board { grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(3, 50px);}
+      .cell  { font-size: 1.25rem; min-width: 47px; min-height: 47px;}
+      h1 { font-size: 1.3rem;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Tic-Tac-Toe Ultimate</h1>
+    <div class="top-bar">
+      <button id="theme-toggle" type="button">🌙 Dark Mode</button>
+      <div>
+        <select id="ai-toggle">
+          <option value="two">2 Players</option>
+          <option value="ai">Play vs AI</option>
+        </select>
+      </div>
+    </div>
+    <form class="names-setup" id="setup-form" autocomplete="off">
+      <div>
+        <input type="text" id="playerX" maxlength="10" placeholder="Player X name" required value="Player X"/>
+      </div>
+      <div>
+        <input type="text" id="playerO" maxlength="10" placeholder="Player O name" required value="Player O"/>
+      </div>
+      <button type="submit">Start Game</button>
+    </form>
+    <div class="scoreboard" id="scoreboard" style="display: none;">
+      <span id="score-x">Player X: 0</span>
+      <span id="draws">Draws: 0</span>
+      <span id="score-o">Player O: 0</span>
+    </div>
+    <div class="controls-bar" style="display: none;" id="control-bar">
+      <button id="restart-btn">Restart</button>
+      <button id="undo-btn">Undo</button>
+    </div>
+    <div class="status-message" id="status"></div>
+    <div class="board" id="board" style="pointer-events: none;">
+      <div class="cell" data-idx="0" data-value=""></div>
+      <div class="cell" data-idx="1" data-value=""></div>
+      <div class="cell" data-idx="2" data-value=""></div>
+      <div class="cell" data-idx="3" data-value=""></div>
+      <div class="cell" data-idx="4" data-value=""></div>
+      <div class="cell" data-idx="5" data-value=""></div>
+      <div class="cell" data-idx="6" data-value=""></div>
+      <div class="cell" data-idx="7" data-value=""></div>
+      <div class="cell" data-idx="8" data-value=""></div>
+    </div>
+    <!-- Sounds -->
+    <audio id="snd-move" src="data:audio/wav;base64,UklGRrIAAABXQVZFZm10IBAAAAABAAEARKwAABCxAgAEABAAZGF0YVwAAACAgICAgICAgICAgICAgICAgIH+B/oH/B/8H/wf+B/oH/gf+B/wf/B/8H/B/8H/wf/B/8H/wf/B/8H/gf+B/oH/gf/B/8H/B/8H/wf/B/8H/B/8H/B/8H/wf/B/8H/wf/B/8H/wf/B/8H/wf/B/8H/wf/B/8H/wf/A==" preload="auto"></audio>
+    <audio id="snd-win" src="data:audio/wav;base64,UklGRjYAAABXQVZFZm10IBAAAAABAAEARKwAABCxAgAEABAAZGF0YYAAAIiIiIiIiIiIiMjIyMjIyMjIyMjIyP//////////////wAAAISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhIQA=" preload="auto"></audio>
+    <audio id="snd-undo" src="data:audio/wav;base64,UklGRhIAAABXQVZFZm10IBAAAAABAAEARKwAABCxAgAEABAAZGF0YaAAAABiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiAAAAA==" preload="auto"></audio>
+  </div>
+  <script>
+    // ---- VARIABLES ----
+    const boardElem = document.getElementById('board');
+    const cells     = Array.from(document.querySelectorAll('.cell'));
+    const statusMsg = document.getElementById('status');
+    const restartBtn= document.getElementById('restart-btn');
+    const undoBtn   = document.getElementById('undo-btn');
+    const setupForm = document.getElementById('setup-form');
+    const playerXInp= document.getElementById('playerX');
+    const playerOInp= document.getElementById('playerO');
+    const scoreboard= document.getElementById('scoreboard');
+    const scoreX    = document.getElementById('score-x');
+    const scoreO    = document.getElementById('score-o');
+    const draws     = document.getElementById('draws');
+    const controlBar= document.getElementById('control-bar');
+    const aiToggle  = document.getElementById('ai-toggle');
+    const themeBtn  = document.getElementById('theme-toggle');
+
+    // Sounds
+    const sndMove = document.getElementById('snd-move');
+    const sndWin  = document.getElementById('snd-win');
+    const sndUndo = document.getElementById('snd-undo');
+
+    // Game state
+    let gameState, currentPlayer, winner, gameActive, movesHistory;
+    let playerNames = { X: "Player X", O: "Player O" };
+    let playingVsAI = false;
+    let scores      = { X: 0, O: 0, draws: 0 };
+    const WIN_COMBOS = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+
+    // ---- DARK/LIGHT MODE BUTTON ----
+    function setMode(isDark) {
+      document.body.classList.toggle('dark-mode', isDark);
+      themeBtn.textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+    }
+    themeBtn.addEventListener('click', ()=>{
+      let dark = !document.body.classList.contains('dark-mode');
+      setMode(dark);
+      localStorage.setItem('ttt-mode', dark ? "dark" : "light");
+    });
+    if(localStorage.getItem('ttt-mode')==="dark") setMode(true);
+    else setMode(false);
+
+    // ---- INTIAL SETUP FORM ----
+    function showGameUI() {
+      setupForm.style.display = 'none';
+      scoreboard.style.display = '';
+      controlBar.style.display = '';
+      boardElem.style.pointerEvents = '';
+      boardElem.style.opacity = '1.00';
+    }
+    function showSetupForm() {
+      setupForm.style.display = '';
+      scoreboard.style.display = 'none';
+      controlBar.style.display = 'none';
+      boardElem.style.pointerEvents = 'none';
+      boardElem.style.opacity = '0.60';
+      statusMsg.textContent = '';
+    }
+    function updateNameInputs() {
+      if (aiToggle.value === 'ai') {
+        playerOInp.value = 'AI';
+        playerOInp.disabled = true;
+      } else {
+        playerOInp.disabled = false;
+      }
+    }
+    aiToggle.addEventListener('change', updateNameInputs);
+    updateNameInputs();
+
+    setupForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      playerNames.X = playerXInp.value.trim() || "Player X";
+      playerNames.O = playerOInp.value.trim() || (aiToggle.value==="ai" ? "AI" : "Player O");
+      playingVsAI   = (aiToggle.value === "ai");
+      resetScores();
+      showGameUI();
+      startGame();
+    });
+
+    // ---- GAME INIT/RESET ----
+    function startGame(){
+      gameState = Array(9).fill("");
+      currentPlayer = "X";
+      winner = null;
+      gameActive = true;
+      movesHistory = [];
+      cells.forEach(c => {
+        c.textContent = "";
+        c.setAttribute("data-value","");
+        c.classList.remove("win");
+        c.style.pointerEvents = 'auto';
+      });
+      updateStatus();
+      if (playingVsAI && currentPlayer === "O") setTimeout(aiMove, 350);
+    }
+
+    function updateStatus() {
+      if (winner) {
+        if (winner==="draw") statusMsg.textContent = "It's a draw!";
+        else {
+          statusMsg.textContent = `${playerNames[winner]} wins! 🎉`;
+        }
+      } else {
+        statusMsg.textContent = `${playerNames[currentPlayer]}'s turn (${currentPlayer})`;
+      }
+    }
+
+    function resetScores(){
+      scores = { X: 0, O: 0, draws: 0 };
+      updateScoreboard();
+    }
+    function updateScoreboard() {
+      scoreX.textContent = `${playerNames.X || "Player X"}: ${scores.X}`;
+      scoreO.textContent = `${playerNames.O || (playingVsAI ? "AI" : "Player O")}: ${scores.O}`;
+      draws.textContent  = `Draws: ${scores.draws}`;
+    }
+    restartBtn.addEventListener("click", ()=>{
+      startGame();
+    });
+
+    // ---- BOARD HANDLE ----
+    function cellClick(e) {
+      const idx = +e.target.getAttribute('data-idx');
+      if (!gameActive || gameState[idx]) return;
+      playMove(idx, currentPlayer);
+    }
+
+    function playMove(idx, player) {
+      if (!gameActive || gameState[idx]) return;
+      try { sndMove.currentTime=0; sndMove.play(); } catch{}
+      gameState[idx] = player;
+      cells[idx].textContent = player;
+      cells[idx].setAttribute("data-value", player);
+      movesHistory.push({idx, player});
+      if (checkWinDraw()) {
+        // End game
+        gameActive = false;
+        boardElem.style.pointerEvents="none";
+        highlightWin(winner==='draw' ? null : getWinCombo());
+        updateScoreboard();
+        try { sndWin.currentTime=0; sndWin.play(); } catch{}
+      } else {
+        currentPlayer = currentPlayer === "X" ? "O" : "X";
+        updateStatus();
+        if (playingVsAI && currentPlayer==="O" && gameActive) {
+          setTimeout(aiMove, 350);
+        }
+      }
+    }
+
+    // ---- UNBEATABLE AI (MINIMAX) ----
+    function aiMove() {
+      // Unbeatable Minimax AI ("O" is always AI)
+      let best = minimax(gameState, 0, true);
+      playMove(best.idx, "O");
+    }
+    function minimax(board, depth, isMax) {
+      let score = minimaxEval(board, depth);
+      if (score !== null) return { score: score };
+
+      let moves = [];
+      for (let i = 0; i < 9; i++) {
+        if (!board[i]) {
+          let newBoard = board.slice();
+          newBoard[i] = isMax ? "O" : "X";
+          let result = minimax(newBoard, depth + 1, !isMax);
+          moves.push({ idx: i, score: result.score });
+        }
+      }
+
+      if (isMax) {
+        // Maximize AI "O"
+        let max = moves.reduce((a, b) => (a.score > b.score ? a : b));
+        if (depth === 0) return max;
+        return { score: max.score };
+      } else {
+        // Minimize human "X"
+        let min = moves.reduce((a, b) => (a.score < b.score ? a : b));
+        return { score: min.score };
+      }
+    }
+    // Helper to score board for minimax
+    function minimaxEval(board, depth) {
+      let winCombo = getWinComboOnBoard(board);
+      if (winCombo) {
+        let winner = board[winCombo[0]];
+        if (winner === "O") return 10 - depth;
+        else if (winner === "X") return depth - 10;
+      }
+      if (board.every(cell => cell)) return 0; // Draw
+      return null;
+    }
+    // Version of getWinCombo for supplied board (not gameState)
+    function getWinComboOnBoard(brd) {
+      for (let combo of WIN_COMBOS) {
+        const [a, b, c] = combo;
+        if (brd[a] && brd[a] === brd[b] && brd[a] === brd[c]) return combo;
+      }
+      return null;
+    }
+
+    // ---- WIN CHECK & HIGHLIGHT ----
+    function checkWinDraw(){
+      for(let combo of WIN_COMBOS){
+        let [a,b,c]=combo;
+        if( gameState[a] && gameState[a]===gameState[b] && gameState[a]===gameState[c]) {
+          winner = gameState[a];
+          gameActive = false;
+          scores[winner]++;
+          updateScoreboard();
+          updateStatus();
+          return true;
+        }
+      }
+      if(gameState.every(cell=>cell)){
+        winner = "draw";
+        scores.draws++;
+        updateScoreboard();
+        updateStatus();
+        return true;
+      }
+      winner = null;
+      updateStatus();
+      return false;
+    }
+    function getWinCombo(){
+      for(let combo of WIN_COMBOS){
+        let [a,b,c]=combo;
+        if( gameState[a] && gameState[a]===gameState[b] && gameState[a]===gameState[c]) {
+          return combo;
+        }
+      }
+      return null;
+    }
+    function highlightWin(combo){
+      cells.forEach(c => c.classList.remove('win'));
+      if(combo && combo.length===3){
+        combo.forEach(i=> cells[i].classList.add('win'));
+      }
+    }
+
+    // ---- UNDO FEATURE ----
+    function undoMove() {
+      if (!movesHistory.length) return;
+      if (winner) {
+        winner = null;
+        highlightWin(null);
+        statusMsg.textContent = `${playerNames[currentPlayer]}'s turn (${currentPlayer})`;
+        gameActive = true;
+        boardElem.style.pointerEvents="";
+      }
+      let last = movesHistory.pop();
+      gameState[last.idx] = "";
+      cells[last.idx].textContent = "";
+      cells[last.idx].setAttribute("data-value","");
+      currentPlayer = last.player;
+      updateStatus();
+      // If next is AI, remove their move as well
+      if (playingVsAI && currentPlayer==="X" && movesHistory.length) {
+        let aiLast = movesHistory.pop();
+        gameState[aiLast.idx]="";
+        cells[aiLast.idx].textContent = "";
+        cells[aiLast.idx].setAttribute("data-value","");
+      }
+      try { sndUndo.currentTime=0; sndUndo.play(); } catch{}
+    }
+    undoBtn.addEventListener("click", undoMove);
+
+    // ---- BOARD UI events ----
+    cells.forEach(cell => cell.addEventListener('click', cellClick));
+    // ---- PAGE INIT ----
+    showSetupForm();
+
+    // Allow game to start if user presses Enter on second input
+    playerOInp.addEventListener('keypress',e=>{
+      if(e.key==="Enter") setupForm.dispatchEvent(new Event('submit'));
+    });
+
+    aiToggle.addEventListener('change',()=>{
+      if(setupForm.style.display==='none') {
+        showSetupForm();
+      }
+      updateNameInputs();
+    });
+
+    window.addEventListener('keydown', e=>{
+      if (e.key==="Escape" && setupForm.style.display==="none") {
+        showSetupForm();
+      }
+    });
+  </script>
+</body>
+</html>
